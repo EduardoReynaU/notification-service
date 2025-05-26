@@ -1,0 +1,20 @@
+sytanx = "proto3";
+
+package notification;
+
+service notificationService {
+
+    rpc EnviarNotificacion
+    (NotificacionInput) returns
+    (NotificacionInput);
+}
+
+message NotificacionInput {
+    string userId = 1;
+    string mensaje = 2;
+    string tipo = 3;
+}
+
+message NotificacionRespuesta {
+    bool enviado = 1;
+}
