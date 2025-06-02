@@ -12,7 +12,7 @@ const notificationPackage = grpcObj.notification;
 const server = new grpc.Server();
 server.addService(notificationPackage.NotificationService.service, notificationHandlers);
 
-const PORT = '50052';
+const PORT = process.env.PORT || 50052;
 server.bindAsync(`0.0.0.0:${PORT}`, grpc.ServerCredentials.createInsecure(), () => {
   console.log(`Notification service gRPC corriendo en puerto ${PORT}`);
   server.start();
