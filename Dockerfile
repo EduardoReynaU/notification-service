@@ -1,20 +1,21 @@
-FROM node:18
+# Etapa 1: Instala dependencias de Node.js
+FROM node:18 as app
 
-# Instalar Envoy
-RUN apt-get update && apt-get install -y curl lsb-release && \
-    curl -sL 'https://getenvoy.io/gpg' | apt-key add - && \
-    echo "deb [arch=amd64] https://dl.bintray.com/tetrate/getenvoy-deb $(lsb_release -cs) stable" > /etc/apt/sources.list.d/getenvoy.list && \
-    apt-get update && apt-get install -y getenvoy-envoy
-
-# Copiar app
 WORKDIR /app
 COPY . .
-
-# Instalar dependencias Node
 RUN npm install
 
-# Exponer puerto HTTP
+# Etapa 2: Usa una imagen de Envoy como base final
+FROM envoyproxy/envoy:v1.25-latest
+
+# Copiar app Node.js desde la etapa anterior
+COPY --from=app /app /app
+
+# Copiar configuración de Envoy
+COPY envoy.yaml /etc/envoy/envoy.yaml
+
+# Exponer el puerto 8080 para Cloud Run (proxy Envoy)
 EXPOSE 8080
 
-# Ejecutar Envoy + gRPC server en paralelo
-CMD [\"sh\", \"-c\", \"node server.js & envoy -c envoy.yaml\"]
+# Comando para correr tu app Node.js y Envoy al mismo tiempo
+CMD [\"sh\", \"-c\", \"node /app/server.js & envoy -c /etc/envoy/envoy.yaml -l info\"]
