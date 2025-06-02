@@ -1,24 +1,18 @@
-
-# Imagen base con Node.js
+# Etapa base: usa una imagen oficial de Node.js
 FROM node:18
 
-# Crear directorio de trabajo
-WORKDIR /usr/src/app
+# Establecer directorio de trabajo
+WORKDIR /app
 
-# Copiar dependencias
+# Copiar archivos del proyecto
 COPY package*.json ./
+COPY . .
 
 # Instalar dependencias
 RUN npm install
 
-# Copiar el resto del proyecto
-COPY . .
+# Exponer el puerto gRPC (50052)
+EXPOSE 50052
 
-# Asegurar compatibilidad con ES Modules
-RUN echo '{ "type": "module" }' > ./package.json && cat package.json >> ./package.json.tmp && mv ./package.json.tmp ./package.json
-
-# Exponer el puerto gRPC (50051 por defecto)
-EXPOSE 50051
-
-# Comando para iniciar el servidor gRPC
-CMD ["node", "src/server.js"]
+# Comando para ejecutar el servidor
+CMD ["node", "server.js"]
