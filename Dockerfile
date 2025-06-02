@@ -1,18 +1,20 @@
-# Etapa base: usa una imagen oficial de Node.js
 FROM node:18
 
-# Establecer directorio de trabajo
-WORKDIR /app
+# Instalar Envoy
+RUN apt-get update && apt-get install -y curl lsb-release && \
+    curl -sL 'https://getenvoy.io/gpg' | apt-key add - && \
+    echo "deb [arch=amd64] https://dl.bintray.com/tetrate/getenvoy-deb $(lsb_release -cs) stable" > /etc/apt/sources.list.d/getenvoy.list && \
+    apt-get update && apt-get install -y getenvoy-envoy
 
-# Copiar archivos del proyecto
-COPY package*.json ./
+# Copiar app
+WORKDIR /app
 COPY . .
 
-# Instalar dependencias
+# Instalar dependencias Node
 RUN npm install
 
-# Exponer el puerto gRPC (50052)
-EXPOSE 50052
+# Exponer puerto HTTP
+EXPOSE 8080
 
-# Comando para ejecutar el servidor
-CMD ["node", "server.js"]
+# Ejecutar Envoy + gRPC server en paralelo
+CMD [\"sh\", \"-c\", \"node server.js & envoy -c envoy.yaml\"]
